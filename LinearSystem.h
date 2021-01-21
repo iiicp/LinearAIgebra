@@ -47,6 +47,24 @@ public:
     Ab = new Matrix<E>(res);
   }
 
+  LinearSystem(Matrix<E> &A, Matrix<E> &B) {
+
+    assert(A.row_num() == B.row_num());
+
+    row = A.row_num();
+    col = A.col_num();
+
+    std::vector<std::vector<E>> res(row, std::vector<E>(col + col, 0));
+
+    for (int i = 0; i < row; ++i)
+      for (int j = 0; j < col; ++j) {
+        res[i][j] = A[i][j];
+        res[i][j + col] = B[i][j];
+      }
+
+    Ab = new Matrix<E>(res);
+  }
+
   ~LinearSystem() {
     if (Ab) {
       delete Ab;
@@ -67,17 +85,42 @@ public:
     return true;
   }
 
+  /// 获取矩阵解
+  Matrix<E> getMatrixSolution() {
+
+    std::vector<std::vector<E>> res(row, std::vector<E>(col, 0));
+
+    for (int i = 0; i < row; ++i) {
+      for (int j = col; j < col + col; ++j) {
+        res[i][j - col] = (*Ab)[i][j];
+      }
+    }
+
+    return Matrix<E>(res);
+  }
+
+  /// 获取向量解
+  Vector<E> getVectorSolution() {
+
+    std::vector<E> res(row, 0);
+
+    for (int i = 0; i < row; ++i)
+      res[i] = (*Ab)[i][col];
+
+    return Vector<E>(res);
+  }
+
   friend std::ostream &operator<<(std::ostream &os, const LinearSystem<E> &ls) {
     os << "linear system: " << std::endl;
     for (int i = 0; i < ls.row; ++i) {
-      for (int j = 0; j < ls.col + 1; ++j) {
+      for (int j = 0; j < ls.Ab->col_num(); ++j) {
         if (j == ls.col) {
           os << "|" << (*ls.Ab)[i][j];
         }else {
-          if (j < ls.col - 1)
-            os << (*ls.Ab)[i][j] << ",";
-          else
+          if (j == ls.col - 1 || j == ls.col * 2 - 1)
             os << (*ls.Ab)[i][j];
+          else
+            os << (*ls.Ab)[i][j] << ", ";
         }
       }
       os << std::endl;
@@ -99,7 +142,7 @@ private:
   }
 
   void exchange_row(int r1, int r2) {
-    for (int i = 0; i < col + 1; ++i) {
+    for (int i = 0; i < Ab->col_num(); ++i) {
       E t = (*Ab)[r1][i];
       (*Ab)[r1][i] = (*Ab)[r2][i];
       (*Ab)[r2][i] = t;
@@ -120,7 +163,7 @@ private:
         k += 1;
       else {
           /// 将主元归一
-          for (int j = 0; j < col + 1; ++j) {
+          for (int j = 0; j < Ab->col_num(); ++j) {
             (*Ab)[i][j] = (*Ab)[i][j] / pivot;
             if (abs((*Ab)[i][j]) < 1e-8)
               (*Ab)[i][j] = 0;
@@ -128,7 +171,7 @@ private:
 
           for (int m = i + 1; m < row; ++m) {
             E times = (*Ab)[m][k];
-            for (int n = 0; n < col + 1; ++n) {
+            for (int n = 0; n < Ab->col_num(); ++n) {
               (*Ab)[m][n] = (*Ab)[m][n] - times * (*Ab)[i][n];
               if (abs((*Ab)[m][n]) < 1e-8)
                 (*Ab)[m][n] = 0;
@@ -146,7 +189,7 @@ private:
       int m = pivots[i];
       for (int j = i - 1; j >= 0; j--) {
         E times = (*Ab)[j][m];
-        for (int k = 0; k < col + 1; ++k) {
+        for (int k = 0; k < Ab->col_num(); ++k) {
           (*Ab)[j][k] = (*Ab)[j][k] - times * (*Ab)[i][k];
           if (abs((*Ab)[j][k]) < 1e-8)
             (*Ab)[j][k] = 0;

@@ -11,6 +11,7 @@
 #include "Vector.h"
 #include "Matrix.h"
 #include "LinearSystem.h"
+#include "Linalg.h"
 
 void myVectorTest() {
   std::vector<double> v = {1,2,3,4};
@@ -180,11 +181,24 @@ void linearSystemTest() {
   std::vector<double> b10 = {0.2, -1.4, 0.6};
   LinearAlgebra::Vector<double> V10(b10);
   std::cout << mat9.dot(V10) << std::endl;
+
+  std::vector<std::vector<double>> A11 = {{1,2}, {3,4}};
+  LinearAlgebra::Matrix<double> mat11(A11);
+
 }
 
 int main() {
 
-  linearSystemTest();
+  std::vector<std::vector<double>> v2d = {{1,2}, {3,4}};
+  bool isExist = false;
+  LinearAlgebra::Matrix<double> mat(v2d);
+  LinearAlgebra::Matrix<double> invMat = LinearAlgebra::Linalg<double>::inv(mat, &isExist);
+  if (isExist) {
+    std::cout << mat << ".inv = " << invMat << std::endl;
+    std::cout << mat << ".dot = " << invMat << mat.dot(invMat) << std::endl;
+  }else {
+    std::cout << mat << "no inv mat" << std::endl;
+  }
 
   return 0;
 }
