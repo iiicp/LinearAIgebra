@@ -46,7 +46,7 @@ void myVectorTest() {
   //std::cout << "zero4.normalize() = " << zero4.normalize() << std::endl;
 }
 
-int main() {
+void myMatrixTest() {
 
   std::vector<std::vector<double>> vec{{1,2,3},{4,5,6}};
   LinearAlgebra::Matrix<double> mat(vec);
@@ -61,5 +61,36 @@ int main() {
   std::tuple<int, int> tp = mat.shape();
   std::tuple<int, int> shape = mat.shape();
   std::cout << "shape: (" << std::get<0>(shape) << "," << std::get<1>(shape) << ")" << std::endl;
+
+
+  std::vector<std::vector<double>> vec2{{2,3,5},{1,4,9}};
+  LinearAlgebra::Matrix<double> mat2(vec2);
+  std::cout << mat << " + " << mat2 << " = " << mat + mat2 << std::endl;
+  std::cout << mat << " - " << mat2 << " = " << mat - mat2 << std::endl;
+
+  std::cout << mat << " * " << 5 << " = " << mat * 5 << std::endl;
+  std::cout << 5 << " * " << mat << " = " << 5 * mat << std::endl;
+  std::cout << mat << " / " << 5 << " = " << mat / 5 << std::endl;
+
+  std::cout << "+mat" << " = " << +mat << std::endl;
+  std::cout << "-mat" << " = " << -mat << std::endl;
+
+  std::vector<double> v1{2,2,3};
+  LinearAlgebra::Vector<double> v(v1);
+  std::cout << mat << " * "  << v << " = " << mat.dot(v) << std::endl;
+
+  std::vector<std::vector<double>> v3{{1,2},{3,4},{5,6}};
+  LinearAlgebra::Matrix<double> mat3(v3);
+  std::cout << mat << " * " << mat3 << " = " << mat.dot(mat3) << std::endl;
+
+  std::cout << mat << ".T" << " = " << mat.T() << std::endl;
+
+  std::cout << LinearAlgebra::Matrix<double>::zero(5,6) << std::endl;
+  std::cout << LinearAlgebra::Matrix<double>::identify(5) << std::endl;
+}
+
+int main() {
+
+
   return 0;
 }

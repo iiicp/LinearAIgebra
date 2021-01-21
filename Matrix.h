@@ -14,11 +14,11 @@
 #include <vector>
 #include <cassert>
 #include <iostream>
+#include <cstdlib>
 #include "Vector.h"
 #include <tuple>
 
 namespace LinearAlgebra {
-class Matrix1d;
 template <typename E>
 class Matrix {
 private:
@@ -41,13 +41,77 @@ public:
     }
   }
 
+  /// copy construct
+  Matrix(const Matrix &other) : row(other.row_num()), rowArr(new Vector<E>[other.row_num()]) {
+
+    for (int i = 0; i < row; ++i)
+      rowArr[i] = other[i];
+  }
+
+  /// zero matrix
+  static Matrix zero(int r, int c) {
+
+    std::vector<std::vector<E>> res(r, std::vector<E>(c, 0));
+    return Matrix(res);
+  }
+
+  /// 单位矩阵, 对角线为1
+  static Matrix identify(int n) {
+
+    std::vector<std::vector<E>> res(n, std::vector<E>(n, 0));
+    for (int i = 0; i < n; ++i)
+      res[i][i] = 1;
+    return Matrix(res);
+  }
+
+  /// mat * vector
+  Vector<E> dot(const Vector<E> &other) {
+
+    assert(col_num() == other.size());
+
+    std::vector<E> res(row);
+
+    for (int i = 0; i < row; ++i) {
+      res[i] = rowArr[i].dot(other);
+    }
+    return Vector<E>(res);
+  }
+
+  /// mat * mat
+  Matrix dot(const Matrix &other) {
+
+    assert(col_num() == other.row_num());
+
+    std::vector<std::vector<E>> res(row, std::vector<E>(other.col_num(), 0));
+
+    for (int i = 0; i < row; ++i)
+      for (int j = 0; j < other.col_num(); ++j)
+        res[i][j] = rowArr[i].dot(other.col_vector(j));
+
+    return Matrix(res);
+  }
+
+  /// T
+  Matrix T() {
+
+    int rowSize = row_num(), colSize = col_num();
+    std::vector<std::vector<E>> res(colSize, std::vector<E>(rowSize, 0));
+
+    for (int i = 0; i < colSize; ++i) {
+      for (int j = 0; j < rowSize; ++j) {
+        res[i][j] = rowArr[j][i];
+      }
+    }
+    return Matrix(res);
+  }
+
   /// 返回矩阵的第index个行向量
-  Vector<E> row_vector(int index) {
+  Vector<E> row_vector(int index) const {
     return rowArr[index];
   }
 
   /// 返回矩阵的第index个列向量
-  Vector<E> col_vector(int index) {
+  Vector<E> col_vector(int index) const{
     std::vector<E> cols(row);
     for (int i = 0; i < row; ++i)
       cols[i] = rowArr[i][index];
@@ -62,6 +126,69 @@ public:
   /// getItem const
   const Vector<E> &operator[](int index) const {
     return rowArr[index];
+  }
+
+  /// 返回两个矩阵的加法
+  Matrix operator+(const Matrix& other) {
+
+    assert(row == other.row && col_num() && other.col_num());
+
+    std::vector<std::vector<E>> res(row, std::vector<E>(col_num(), 0));
+
+    int colSize = col_num();
+    for (int i = 0; i < row; ++i)
+      for (int j = 0; j < colSize; ++j)
+        res[i][j] = rowArr[i][j] + other[i][j];
+
+    return Matrix(res);
+  }
+
+  /// 返回两个矩阵的减法
+  Matrix operator-(const Matrix& other) {
+
+    assert(row == other.row && col_num() && other.col_num());
+
+    std::vector<std::vector<E>> res(row, std::vector<E>(col_num(), 0));
+
+    int colSize = col_num();
+    for (int i = 0; i < row; ++i)
+      for (int j = 0; j < colSize; ++j)
+        res[i][j] = rowArr[i][j] - other[i][j];
+
+    return Matrix(res);
+  }
+
+  /// 返回数量除法结果
+  Matrix operator/(const E k) {
+
+    assert(abs(k - 0) > 1e-8);
+
+    std::vector<std::vector<E>> res(row, std::vector<E>(col_num(), 0));
+
+    int colSize = col_num();
+    for (int i = 0; i < row; ++i)
+      for (int j = 0; j < colSize; ++j)
+        res[i][j] = rowArr[i][j] / k;
+
+    return Matrix(res);
+  }
+
+  /// neg
+  const Matrix operator-() const{
+
+    std::vector<std::vector<E>> res(row, std::vector<E>(col_num(), 0));
+
+    int colSize = col_num();
+    for (int i = 0; i < row; ++i)
+      for (int j = 0; j < colSize; ++j)
+        res[i][j] = rowArr[i][j] * -1;
+
+    return Matrix(res);
+  }
+
+  /// pos
+  const Matrix operator+() const{
+    return *this;
   }
 
   /// 返回矩阵元素的个数
@@ -82,6 +209,23 @@ public:
   /// 返回矩阵的形状: (行数，列数)
   const std::tuple<int, int> shape() {
     return std::make_tuple(row, rowArr[0].size());
+  }
+
+  /// 返回矩阵的数量乘法 self * k
+  friend Matrix operator*(const Matrix& self, const E k) {
+
+    int rowSize = self.row_num(), colSize = self.col_num();
+    std::vector<std::vector<E>> res(rowSize, std::vector<E>(colSize, 0));
+    for (int i = 0; i < rowSize; ++i)
+      for (int j = 0; j < colSize; ++j)
+        res[i][j] = self[i][j] * k;
+
+    return Matrix(res);
+  }
+
+  /// 返回矩阵的数量乘法 k * self
+  friend Matrix operator*(const E k, const Matrix& self) {
+    return self * k;
   }
 
   /// 打印矩阵
