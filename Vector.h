@@ -130,8 +130,11 @@ public:
     assert(len == other.len && "Error in dot product. Length of vectors must be same.");
 
     double res = 0.0;
-    for (int i = 0; i < len; ++i)
+    for (int i = 0; i < len; ++i) {
       res += other[i] * value[i];
+      if (abs(res) < 1e-8)
+        res = 0;
+    }
     return res;
   }
 

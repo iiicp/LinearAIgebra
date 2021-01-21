@@ -208,7 +208,7 @@ public:
 
   /// 返回矩阵的形状: (行数，列数)
   const std::tuple<int, int> shape() {
-    return std::make_tuple(row, rowArr[0].size());
+    return std::tuple<int, int>(row, rowArr[0].size());
   }
 
   /// 返回矩阵的数量乘法 self * k
